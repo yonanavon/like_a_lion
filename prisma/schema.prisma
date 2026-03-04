@@ -1,0 +1,83 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Parent {
+  id          String   @id @default(cuid())
+  israeliId   String   @unique @map("israeli_id")
+  displayName String   @map("display_name")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  childrenAsParent1 Child[] @relation("Parent1")
+  childrenAsParent2 Child[] @relation("Parent2")
+
+  @@map("parents")
+}
+
+model Child {
+  id        String   @id @default(cuid())
+  firstName String   @map("first_name")
+  lastName  String   @map("last_name")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  parent1Id String  @map("parent1_id")
+  parent1   Parent  @relation("Parent1", fields: [parent1Id], references: [id])
+
+  parent2Id String? @map("parent2_id")
+  parent2   Parent? @relation("Parent2", fields: [parent2Id], references: [id])
+
+  completions TaskCompletion[]
+
+  @@map("children")
+}
+
+model Task {
+  id        String   @id @default(cuid())
+  name      String
+  icon      String   @default("Star")
+  color     String   @default("#3B82F6")
+  points    Int      @default(1)
+  isActive  Boolean  @default(true) @map("is_active")
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  completions TaskCompletion[]
+
+  @@map("tasks")
+}
+
+model TaskCompletion {
+  id          String   @id @default(cuid())
+  childId     String   @map("child_id")
+  taskId      String   @map("task_id")
+  date        DateTime @db.Date
+  completedAt DateTime @default(now()) @map("completed_at")
+
+  child Child @relation(fields: [childId], references: [id], onDelete: Cascade)
+  task  Task  @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@unique([childId, taskId, date])
+  @@map("task_completions")
+}
+
+model Campaign {
+  id             String @id @default("singleton")
+  startDate      DateTime @db.Date @map("start_date")
+  activeWeekdays Int[]  @map("active_weekdays")
+
+  @@map("campaign")
+}
+
+model FlashMessage {
+  id        String   @id @default(cuid())
+  content   String
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("flash_messages")
+}
