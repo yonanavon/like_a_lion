@@ -23,6 +23,7 @@ model Child {
   id        String   @id @default(cuid())
   firstName String   @map("first_name")
   lastName  String   @map("last_name")
+  grade     String   @default("")
   createdAt DateTime @default(now()) @map("created_at")
 
   parent1Id String  @map("parent1_id")

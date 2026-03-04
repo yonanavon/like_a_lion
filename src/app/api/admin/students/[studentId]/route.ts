@@ -6,11 +6,12 @@ export async function PUT(
   { params }: { params: { studentId: string } }
 ) {
   const body = await request.json();
-  const { firstName, lastName, parent1Id, parent1Name, parent2Id, parent2Name } = body;
+  const { firstName, lastName, grade, parent1Id, parent1Name, parent2Id, parent2Name } = body;
 
   const updateData: Record<string, unknown> = {};
   if (firstName !== undefined) updateData.firstName = firstName;
   if (lastName !== undefined) updateData.lastName = lastName;
+  if (grade !== undefined) updateData.grade = grade;
 
   if (parent1Id && parent1Name) {
     const cleanId = parent1Id.replace(/\D/g, "");

@@ -22,7 +22,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
-  const { firstName, lastName, parent1Id, parent1Name, parent2Id, parent2Name } = body;
+  const { firstName, lastName, grade, parent1Id, parent1Name, parent2Id, parent2Name } = body;
 
   if (!firstName || !lastName || !parent1Id || !parent1Name) {
     return NextResponse.json(
@@ -55,6 +55,7 @@ export async function POST(request: NextRequest) {
     data: {
       firstName,
       lastName,
+      grade: grade || "",
       parent1Id: p1.id,
       parent2Id: p2?.id || null,
     },

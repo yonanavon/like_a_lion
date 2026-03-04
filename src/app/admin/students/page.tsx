@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Plus, Trash2, Edit2, X } from "lucide-react";
+import { useEffect, useState, useRef } from "react";
+import { Plus, Trash2, Edit2, X, Upload, FileSpreadsheet, Download } from "lucide-react";
 
 interface Child {
   id: string;
   firstName: string;
   lastName: string;
+  grade: string;
   parent1: { israeliId: string; displayName: string };
   parent2: { israeliId: string; displayName: string } | null;
   totalPoints: number;
@@ -16,10 +17,18 @@ interface Child {
 export default function StudentsPage() {
   const [children, setChildren] = useState<Child[]>([]);
   const [showForm, setShowForm] = useState(false);
+  const [showImport, setShowImport] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [importResult, setImportResult] = useState<{
+    created: number;
+    errors: string[];
+  } | null>(null);
+  const [importing, setImporting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
+    grade: "",
     parent1Id: "",
     parent1Name: "",
     parent2Id: "",
@@ -39,6 +48,7 @@ export default function StudentsPage() {
     setForm({
       firstName: "",
       lastName: "",
+      grade: "",
       parent1Id: "",
       parent1Name: "",
       parent2Id: "",
@@ -75,6 +85,7 @@ export default function StudentsPage() {
     setForm({
       firstName: child.firstName,
       lastName: child.lastName,
+      grade: child.grade || "",
       parent1Id: child.parent1.israeliId,
       parent1Name: child.parent1.displayName,
       parent2Id: child.parent2?.israeliId || "",
@@ -82,6 +93,7 @@ export default function StudentsPage() {
     });
     setEditingId(child.id);
     setShowForm(true);
+    setShowImport(false);
   };
 
   const handleDelete = async (id: string) => {
@@ -91,21 +103,159 @@ export default function StudentsPage() {
     loadChildren();
   };
 
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setImporting(true);
+    setImportResult(null);
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await fetch("/api/admin/students/import", {
+        method: "POST",
+        body: formData,
+      });
+      const result = await res.json();
+      if (res.ok) {
+        setImportResult(result);
+        loadChildren();
+      } else {
+        setImportResult({ created: 0, errors: [result.error] });
+      }
+    } catch {
+      setImportResult({ created: 0, errors: ["שגיאת חיבור"] });
+    } finally {
+      setImporting(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const downloadTemplate = () => {
+    const bom = "\uFEFF";
+    const header = "שם פרטי,שם משפחה,כיתה,ת.ז. הורה 1,שם הורה 1,ת.ז. הורה 2,שם הורה 2";
+    const example = "ישראל,ישראלי,ג,123456789,אבא ישראלי,987654321,אמא ישראלי";
+    const csv = bom + header + "\n" + example + "\n";
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "students_template.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">ניהול תלמידים</h1>
-        <button
-          onClick={() => {
-            resetForm();
-            setShowForm(true);
-          }}
-          className="btn-primary flex items-center gap-2"
-        >
-          <Plus size={20} />
-          <span>הוספה</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => {
+              setShowImport(!showImport);
+              setShowForm(false);
+              setImportResult(null);
+            }}
+            className="btn-secondary flex items-center gap-2"
+          >
+            <Upload size={20} />
+            <span className="hidden sm:inline">ייבוא CSV</span>
+          </button>
+          <button
+            onClick={() => {
+              resetForm();
+              setShowForm(true);
+              setShowImport(false);
+            }}
+            className="btn-primary flex items-center gap-2"
+          >
+            <Plus size={20} />
+            <span>הוספה</span>
+          </button>
+        </div>
       </div>
+
+      {showImport && (
+        <div className="card mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-semibold flex items-center gap-2">
+              <FileSpreadsheet size={20} />
+              ייבוא תלמידים מקובץ CSV
+            </h2>
+            <button onClick={() => { setShowImport(false); setImportResult(null); }}>
+              <X size={20} className="text-gray-400" />
+            </button>
+          </div>
+
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4 text-sm space-y-2">
+            <p className="font-medium text-blue-800">הנחיות ייבוא:</p>
+            <ul className="list-disc list-inside text-blue-700 space-y-1">
+              <li>הקובץ חייב להיות בפורמט <strong>CSV</strong> (מופרד בפסיקים)</li>
+              <li>השורה הראשונה היא שורת כותרת (תדלג אוטומטית)</li>
+              <li>
+                סדר העמודות:
+                <strong> שם פרטי, שם משפחה, כיתה, ת.ז. הורה 1, שם הורה 1, ת.ז. הורה 2, שם הורה 2</strong>
+              </li>
+              <li>העמודות <strong>שם פרטי, שם משפחה, ת.ז. הורה 1, שם הורה 1</strong> הן חובה</li>
+              <li>עמודות <strong>ת.ז. הורה 2, שם הורה 2</strong> הן אופציונליות (ניתן להשאיר ריק)</li>
+              <li>אם הורה כבר קיים במערכת (לפי ת.ז.) - שמו יעודכן</li>
+              <li>שמירת הקובץ: <strong>UTF-8 עם BOM</strong> מומלץ לעברית תקינה</li>
+            </ul>
+          </div>
+
+          <div className="flex items-center gap-3 mb-4">
+            <button
+              onClick={downloadTemplate}
+              className="btn-secondary flex items-center gap-2 text-sm"
+            >
+              <Download size={16} />
+              הורד קובץ דוגמה
+            </button>
+          </div>
+
+          <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".csv"
+              onChange={handleImport}
+              className="hidden"
+              id="csv-upload"
+            />
+            <label
+              htmlFor="csv-upload"
+              className="cursor-pointer flex flex-col items-center gap-2"
+            >
+              <Upload size={32} className="text-gray-400" />
+              <span className="text-gray-600">
+                {importing ? "מייבא..." : "לחץ לבחירת קובץ CSV"}
+              </span>
+            </label>
+          </div>
+
+          {importResult && (
+            <div className="mt-4 space-y-2">
+              {importResult.created > 0 && (
+                <div className="bg-green-50 border border-green-200 rounded-xl p-3 text-green-800 text-sm">
+                  יובאו בהצלחה <strong>{importResult.created}</strong> תלמידים
+                </div>
+              )}
+              {importResult.errors.length > 0 && (
+                <div className="bg-red-50 border border-red-200 rounded-xl p-3 text-sm">
+                  <p className="font-medium text-red-800 mb-1">שגיאות:</p>
+                  <ul className="list-disc list-inside text-red-700 space-y-0.5">
+                    {importResult.errors.map((err, i) => (
+                      <li key={i}>{err}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {showForm && (
         <div className="card mb-6">
@@ -137,6 +287,14 @@ export default function StudentsPage() {
                 className="input-field"
               />
             </div>
+
+            <input
+              type="text"
+              value={form.grade}
+              onChange={(e) => setForm({ ...form, grade: e.target.value })}
+              placeholder="כיתה (לדוגמה: ג, ד׳1)"
+              className="input-field"
+            />
 
             <div className="border-t pt-4">
               <p className="text-sm font-medium text-gray-700 mb-2">הורה 1</p>
@@ -203,6 +361,12 @@ export default function StudentsPage() {
             <div className="flex-1 min-w-0">
               <p className="font-medium">
                 {child.firstName} {child.lastName}
+                {child.grade && (
+                  <span className="text-sm text-gray-400 font-normal me-2">
+                    {" "}
+                    • כיתה {child.grade}
+                  </span>
+                )}
               </p>
               <p className="text-sm text-gray-500">
                 {child.totalPoints} נקודות • {child.percentage}%
@@ -232,7 +396,7 @@ export default function StudentsPage() {
 
         {children.length === 0 && (
           <p className="text-center text-gray-500 py-8">
-            אין תלמידים עדיין. לחץ על &quot;הוספה&quot; כדי להוסיף תלמיד חדש.
+            אין תלמידים עדיין. לחץ על &quot;הוספה&quot; או &quot;ייבוא CSV&quot; כדי להוסיף תלמידים.
           </p>
         )}
       </div>
