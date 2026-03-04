@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { normalizeIsraeliId } from "@/lib/auth";
 
 export async function PUT(
   request: NextRequest,
@@ -14,7 +15,7 @@ export async function PUT(
   if (grade !== undefined) updateData.grade = grade;
 
   if (parent1Id && parent1Name) {
-    const cleanId = parent1Id.replace(/\D/g, "");
+    const cleanId = normalizeIsraeliId(parent1Id);
     const p1 = await prisma.parent.upsert({
       where: { israeliId: cleanId },
       update: { displayName: parent1Name },
@@ -24,7 +25,7 @@ export async function PUT(
   }
 
   if (parent2Id && parent2Name) {
-    const cleanId = parent2Id.replace(/\D/g, "");
+    const cleanId = normalizeIsraeliId(parent2Id);
     const p2 = await prisma.parent.upsert({
       where: { israeliId: cleanId },
       update: { displayName: parent2Name },

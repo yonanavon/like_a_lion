@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { normalizeIsraeliId } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -78,8 +79,8 @@ export async function POST(request: NextRequest) {
       continue;
     }
 
-    const cleanParent1Id = parent1Id.replace(/\D/g, "");
-    if (!cleanParent1Id) {
+    const cleanParent1Id = normalizeIsraeliId(parent1Id);
+    if (cleanParent1Id === "000000000") {
       results.errors.push(`שורה ${lineNum}: ת.ז. הורה 1 לא תקינה`);
       continue;
     }
@@ -93,8 +94,8 @@ export async function POST(request: NextRequest) {
 
       let p2Id: string | null = null;
       if (parent2Id && parent2Name) {
-        const cleanParent2Id = parent2Id.replace(/\D/g, "");
-        if (cleanParent2Id) {
+        const cleanParent2Id = normalizeIsraeliId(parent2Id);
+        if (cleanParent2Id !== "000000000") {
           const p2 = await prisma.parent.upsert({
             where: { israeliId: cleanParent2Id },
             update: { displayName: parent2Name },

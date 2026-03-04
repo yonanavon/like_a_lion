@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getIronSession } from "iron-session";
 import type { SessionData } from "@/lib/auth";
+import { normalizeIsraeliId } from "@/lib/auth";
 
 export async function POST(request: NextRequest) {
   const { israeliId } = await request.json();
@@ -10,7 +11,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "נדרשת תעודת זהות" }, { status: 400 });
   }
 
-  const cleanId = israeliId.replace(/\D/g, "");
+  const cleanId = normalizeIsraeliId(israeliId);
 
   const parent = await prisma.parent.findUnique({
     where: { israeliId: cleanId },

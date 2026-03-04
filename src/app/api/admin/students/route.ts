@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { calculateChildPoints } from "@/lib/points";
+import { normalizeIsraeliId } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -31,8 +32,8 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const cleanParent1Id = parent1Id.replace(/\D/g, "");
-  const cleanParent2Id = parent2Id ? parent2Id.replace(/\D/g, "") : null;
+  const cleanParent1Id = normalizeIsraeliId(parent1Id);
+  const cleanParent2Id = parent2Id ? normalizeIsraeliId(parent2Id) : null;
 
   // Upsert parent 1
   const p1 = await prisma.parent.upsert({

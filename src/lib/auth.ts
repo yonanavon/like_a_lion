@@ -28,6 +28,11 @@ export async function requireParent() {
   return session;
 }
 
+/** Normalize Israeli ID: remove non-digits and pad to 9 digits with leading zeros */
+export function normalizeIsraeliId(id: string): string {
+  return id.replace(/\D/g, "").padStart(9, "0");
+}
+
 export async function requireAdmin() {
   const session = await getSession();
   if (session.role !== "admin") {
