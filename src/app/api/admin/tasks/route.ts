@@ -14,17 +14,19 @@ export async function POST(request: NextRequest) {
   const body = await request.json();
   const { name, icon, color, points } = body;
 
-  if (!name) {
+  if (!name || !name.trim()) {
     return NextResponse.json({ error: "שם משימה נדרש" }, { status: 400 });
   }
+
+  const validPoints = Math.max(1, parseInt(points) || 1);
 
   const maxOrder = await prisma.task.aggregate({ _max: { sortOrder: true } });
   const task = await prisma.task.create({
     data: {
-      name,
+      name: name.trim(),
       icon: icon || "Star",
       color: color || "#3B82F6",
-      points: points || 1,
+      points: validPoints,
       sortOrder: (maxOrder._max.sortOrder ?? 0) + 1,
     },
   });

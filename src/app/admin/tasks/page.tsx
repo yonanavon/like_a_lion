@@ -50,18 +50,19 @@ export default function TasksPage() {
     e.preventDefault();
     if (!form.name.trim()) return;
 
-    if (editingId) {
-      await fetch(`/api/admin/tasks/${editingId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
-    } else {
-      await fetch("/api/admin/tasks", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
+    const url = editingId ? `/api/admin/tasks/${editingId}` : "/api/admin/tasks";
+    const method = editingId ? "PUT" : "POST";
+
+    const res = await fetch(url, {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(form),
+    });
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      alert(data.error || "שגיאה בשמירת המשימה");
+      return;
     }
 
     resetForm();

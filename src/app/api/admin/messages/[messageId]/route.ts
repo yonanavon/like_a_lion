@@ -8,21 +8,28 @@ export async function PUT(
   const body = await request.json();
   const { content, isActive } = body;
 
-  const message = await prisma.flashMessage.update({
-    where: { id: params.messageId },
-    data: {
-      ...(content !== undefined && { content }),
-      ...(isActive !== undefined && { isActive }),
-    },
-  });
-
-  return NextResponse.json(message);
+  try {
+    const message = await prisma.flashMessage.update({
+      where: { id: params.messageId },
+      data: {
+        ...(content !== undefined && { content }),
+        ...(isActive !== undefined && { isActive }),
+      },
+    });
+    return NextResponse.json(message);
+  } catch {
+    return NextResponse.json({ error: "מבזק לא נמצא" }, { status: 404 });
+  }
 }
 
 export async function DELETE(
   _request: NextRequest,
   { params }: { params: { messageId: string } }
 ) {
-  await prisma.flashMessage.delete({ where: { id: params.messageId } });
-  return NextResponse.json({ success: true });
+  try {
+    await prisma.flashMessage.delete({ where: { id: params.messageId } });
+    return NextResponse.json({ success: true });
+  } catch {
+    return NextResponse.json({ error: "מבזק לא נמצא" }, { status: 404 });
+  }
 }

@@ -5,19 +5,24 @@ export function getIsraelToday(): string {
   return israelDateStr; // YYYY-MM-DD
 }
 
+/**
+ * Parse a YYYY-MM-DD string into a Date at midnight UTC.
+ * We use UTC consistently for all date-only comparisons to avoid timezone drift.
+ */
 export function parseDate(dateStr: string): Date {
-  return new Date(dateStr + "T00:00:00");
+  const [y, m, d] = dateStr.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d));
 }
 
 export function formatDateStr(date: Date): string {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
+  const y = date.getUTCFullYear();
+  const m = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const d = String(date.getUTCDate()).padStart(2, "0");
   return `${y}-${m}-${d}`;
 }
 
 export function isActiveDay(date: Date, activeWeekdays: number[]): boolean {
-  return activeWeekdays.includes(date.getDay());
+  return activeWeekdays.includes(date.getUTCDay());
 }
 
 export function getPreviousActiveDay(
@@ -27,7 +32,7 @@ export function getPreviousActiveDay(
 ): string | null {
   const d = new Date(date);
   for (let i = 0; i < 60; i++) {
-    d.setDate(d.getDate() - 1);
+    d.setUTCDate(d.getUTCDate() - 1);
     if (d < startDate) return null;
     if (isActiveDay(d, activeWeekdays)) return formatDateStr(d);
   }
@@ -41,7 +46,7 @@ export function getNextActiveDay(
 ): string | null {
   const d = new Date(date);
   for (let i = 0; i < 60; i++) {
-    d.setDate(d.getDate() + 1);
+    d.setUTCDate(d.getUTCDate() + 1);
     if (d > today) return null;
     if (isActiveDay(d, activeWeekdays)) return formatDateStr(d);
   }
@@ -56,8 +61,8 @@ export function countActiveDays(
   let count = 0;
   const d = new Date(startDate);
   while (d <= endDate) {
-    if (activeWeekdays.includes(d.getDay())) count++;
-    d.setDate(d.getDate() + 1);
+    if (activeWeekdays.includes(d.getUTCDay())) count++;
+    d.setUTCDate(d.getUTCDate() + 1);
   }
   return count;
 }

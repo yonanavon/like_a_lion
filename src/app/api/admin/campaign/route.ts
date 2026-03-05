@@ -4,19 +4,15 @@ import { prisma } from "@/lib/prisma";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  let campaign = await prisma.campaign.findUnique({
+  const campaign = await prisma.campaign.upsert({
     where: { id: "singleton" },
+    update: {},
+    create: {
+      id: "singleton",
+      startDate: new Date(),
+      activeWeekdays: [0, 1, 2, 3, 4, 5],
+    },
   });
-
-  if (!campaign) {
-    campaign = await prisma.campaign.create({
-      data: {
-        id: "singleton",
-        startDate: new Date(),
-        activeWeekdays: [0, 1, 2, 3, 4, 5], // Sun-Fri by default
-      },
-    });
-  }
 
   return NextResponse.json(campaign);
 }

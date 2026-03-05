@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Check } from "lucide-react";
 import { TASK_ICONS } from "@/lib/icons";
 
@@ -26,23 +26,24 @@ export default function TaskToggleButton({
 
   const Icon = TASK_ICONS[task.icon] || TASK_ICONS.Star;
 
+  // Sync with prop when it changes (e.g. date navigation)
+  useEffect(() => {
+    setCompleted(isCompleted);
+  }, [isCompleted]);
+
   const handleClick = async () => {
     if (loading) return;
     setLoading(true);
+    const prevState = completed;
     setCompleted(!completed); // optimistic
     try {
       await onToggle(task.id);
     } catch {
-      setCompleted(completed); // revert
+      setCompleted(prevState); // revert
     } finally {
       setLoading(false);
     }
   };
-
-  // Sync with prop when it changes (e.g. date navigation)
-  if (isCompleted !== completed && !loading) {
-    setCompleted(isCompleted);
-  }
 
   return (
     <button
@@ -60,7 +61,7 @@ export default function TaskToggleButton({
     >
       {completed && (
         <div
-          className="absolute top-2 left-2 w-6 h-6 rounded-full flex items-center justify-center"
+          className="absolute top-2 start-2 w-6 h-6 rounded-full flex items-center justify-center"
           style={{ backgroundColor: task.color }}
         >
           <Check size={14} className="text-white" />

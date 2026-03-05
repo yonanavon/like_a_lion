@@ -63,18 +63,19 @@ export default function StudentsPage() {
     if (!form.firstName || !form.lastName || !form.parent1Id || !form.parent1Name)
       return;
 
-    if (editingId) {
-      await fetch(`/api/admin/students/${editingId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
-    } else {
-      await fetch("/api/admin/students", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
+    const url = editingId ? `/api/admin/students/${editingId}` : "/api/admin/students";
+    const method = editingId ? "PUT" : "POST";
+
+    const res = await fetch(url, {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(form),
+    });
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      alert(data.error || "שגיאה בשמירת התלמיד");
+      return;
     }
 
     resetForm();

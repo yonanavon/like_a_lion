@@ -11,14 +11,15 @@ const HEBREW_DAY_NAMES = [
 ];
 
 export function getHebrewDateDisplay(date: Date) {
-  const hd = new HDate(date);
+  const dayOfWeek = date.getUTCDay();
+  const hd = new HDate(date.getUTCFullYear(), date.getUTCMonth() + 1, date.getUTCDate());
+  const dd = String(date.getUTCDate()).padStart(2, "0");
+  const mm = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const yyyy = date.getUTCFullYear();
+
   return {
-    hebrewDayOfWeek: date.getDay() === 6 ? "שבת" : `יום ${HEBREW_DAY_NAMES[date.getDay()]}`,
+    hebrewDayOfWeek: dayOfWeek === 6 ? "שבת" : `יום ${HEBREW_DAY_NAMES[dayOfWeek]}`,
     hebrewDate: hd.renderGematriya(),
-    gregorianDate: date.toLocaleDateString("he-IL", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    }),
+    gregorianDate: `${dd}/${mm}/${yyyy}`,
   };
 }

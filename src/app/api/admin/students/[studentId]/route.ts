@@ -36,19 +36,26 @@ export async function PUT(
     updateData.parent2Id = null;
   }
 
-  const child = await prisma.child.update({
-    where: { id: params.studentId },
-    data: updateData,
-    include: { parent1: true, parent2: true },
-  });
-
-  return NextResponse.json(child);
+  try {
+    const child = await prisma.child.update({
+      where: { id: params.studentId },
+      data: updateData,
+      include: { parent1: true, parent2: true },
+    });
+    return NextResponse.json(child);
+  } catch {
+    return NextResponse.json({ error: "תלמיד לא נמצא" }, { status: 404 });
+  }
 }
 
 export async function DELETE(
   _request: NextRequest,
   { params }: { params: { studentId: string } }
 ) {
-  await prisma.child.delete({ where: { id: params.studentId } });
-  return NextResponse.json({ success: true });
+  try {
+    await prisma.child.delete({ where: { id: params.studentId } });
+    return NextResponse.json({ success: true });
+  } catch {
+    return NextResponse.json({ error: "תלמיד לא נמצא" }, { status: 404 });
+  }
 }
