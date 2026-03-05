@@ -36,7 +36,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-b from-amber-50 to-orange-50">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: "url('/bg-login.jpg')" }}>
       <div className="w-full max-w-sm">
         <div className="text-center mb-6">
           <img
