@@ -124,14 +124,18 @@ export default function ChildTasksPage() {
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-3">
-          {tasks.map((task) => (
-            <TaskToggleButton
-              key={task.id}
-              task={task}
-              isCompleted={task.isCompleted}
-              onToggle={handleToggle}
-            />
-          ))}
+          {tasks.map((task, index) => {
+            const isLastOdd = tasks.length % 2 === 1 && index === tasks.length - 1;
+            return (
+              <div key={task.id} className={isLastOdd ? "col-span-2 max-w-[50%] mx-auto w-full" : ""}>
+                <TaskToggleButton
+                  task={task}
+                  isCompleted={task.isCompleted}
+                  onToggle={handleToggle}
+                />
+              </div>
+            );
+          })}
 
           {tasks.length === 0 && (
             <p className="col-span-2 text-center text-gray-500 py-8">
