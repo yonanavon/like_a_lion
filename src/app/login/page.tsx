@@ -39,8 +39,11 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-b from-amber-50 to-orange-50">
       <div className="w-full max-w-sm">
         <div className="text-center mb-6">
-          <div className="text-6xl mb-3">🦁</div>
-          <h1 className="text-3xl font-bold text-amber-800">יתגבר כארי</h1>
+          <img
+            src="/logo-vertical.png"
+            alt="יתגבר כארי"
+            className="h-32 mx-auto mb-2"
+          />
           <p className="text-amber-600 mt-1">מערכת מעקב משימות</p>
         </div>
 
@@ -86,6 +89,14 @@ export default function LoginPage() {
             כניסת מנהל
           </a>
         </p>
+
+        <div className="mt-8 flex justify-center">
+          <img
+            src="/school-logo.png"
+            alt="תלמוד תורה חב״ד - ממ״ד נוף הגליל"
+            className="h-16 opacity-80"
+          />
+        </div>
       </div>
     </div>
   );
