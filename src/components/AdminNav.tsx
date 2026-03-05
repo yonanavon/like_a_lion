@@ -9,10 +9,12 @@ import {
   Megaphone,
   LogOut,
   LayoutDashboard,
+  BarChart3,
 } from "lucide-react";
 
 const navItems = [
   { href: "/admin", label: "ראשי", icon: LayoutDashboard },
+  { href: "/admin/dashboard", label: "דשבורד", icon: BarChart3 },
   { href: "/admin/tasks", label: "משימות", icon: ListTodo },
   { href: "/admin/students", label: "תלמידים", icon: Users },
   { href: "/admin/days", label: "ימים", icon: Calendar },

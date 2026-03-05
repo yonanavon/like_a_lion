@@ -1,9 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { ListTodo, Users, Calendar, Megaphone } from "lucide-react";
+import { ListTodo, Users, Calendar, Megaphone, BarChart3 } from "lucide-react";
 
 const sections = [
+  {
+    href: "/admin/dashboard",
+    label: "דשבורד",
+    desc: "תמונת מצב דיווחים ונקודות",
+    icon: BarChart3,
+    color: "bg-indigo-100 text-indigo-600",
+  },
   {
     href: "/admin/tasks",
     label: "ניהול משימות",
