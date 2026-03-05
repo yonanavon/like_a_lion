@@ -12,7 +12,7 @@ export default function AdminLayout({
   const isLoginPage = pathname === "/admin/login";
 
   return (
-    <div>
+    <div className="min-h-screen bg-cover bg-center bg-no-repeat bg-fixed" style={{ backgroundImage: "url('/bg-login.jpg')" }}>
       {!isLoginPage && <AdminNav />}
       <div className={isLoginPage ? "" : "max-w-4xl mx-auto p-4"}>
         {children}

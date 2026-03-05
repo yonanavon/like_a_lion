@@ -16,7 +16,7 @@ export default function ParentLayout({
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-cover bg-center bg-no-repeat bg-fixed" style={{ backgroundImage: "url('/bg-login.jpg')" }}>
       <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
         <div className="max-w-lg mx-auto px-4 flex items-center justify-between h-14">
           <div className="flex items-center">
