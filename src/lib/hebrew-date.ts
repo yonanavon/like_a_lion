@@ -12,7 +12,9 @@ const HEBREW_DAY_NAMES = [
 
 export function getHebrewDateDisplay(date: Date) {
   const dayOfWeek = date.getUTCDay();
-  const hd = new HDate(date.getUTCFullYear(), date.getUTCMonth() + 1, date.getUTCDate());
+  // HDate expects a local Date, so convert UTC components to local
+  const localDate = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
+  const hd = new HDate(localDate);
   const dd = String(date.getUTCDate()).padStart(2, "0");
   const mm = String(date.getUTCMonth() + 1).padStart(2, "0");
   const yyyy = date.getUTCFullYear();
