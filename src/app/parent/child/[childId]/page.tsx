@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Trophy } from "lucide-react";
 import DateNavigator from "@/components/DateNavigator";
 import TaskToggleButton from "@/components/TaskToggleButton";
 import { getIsraelToday } from "@/lib/dates";
@@ -36,6 +36,12 @@ export default function ChildTasksPage() {
   const [campaign, setCampaign] = useState<CampaignData | null>(null);
   const [currentDate, setCurrentDate] = useState(getIsraelToday());
   const [loading, setLoading] = useState(true);
+
+  const todayPoints = useMemo(() => {
+    return tasks
+      .filter((t) => t.isCompleted)
+      .reduce((sum, t) => sum + t.points, 0);
+  }, [tasks]);
 
   const loadTasks = useCallback(
     async (date: string) => {
@@ -93,18 +99,24 @@ export default function ChildTasksPage() {
 
   return (
     <div>
-      <div className="flex items-center gap-3 mb-4">
-        <button
-          onClick={() => router.push("/parent")}
-          className="p-2 rounded-xl hover:bg-gray-100 transition-colors"
-        >
-          <ArrowRight size={24} />
-        </button>
-        {child && (
-          <h2 className="text-xl font-bold">
-            {child.firstName} {child.lastName}
-          </h2>
-        )}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => router.push("/parent")}
+            className="p-2 rounded-xl hover:bg-gray-100 transition-colors"
+          >
+            <ArrowRight size={24} />
+          </button>
+          {child && (
+            <h2 className="text-xl font-bold">
+              {child.firstName} {child.lastName}
+            </h2>
+          )}
+        </div>
+        <div className="flex items-center gap-1.5 bg-amber-50 text-amber-700 px-3 py-1.5 rounded-xl">
+          <Trophy size={18} />
+          <span className="font-bold text-lg">{todayPoints}</span>
+        </div>
       </div>
 
       {campaign && (
@@ -125,14 +137,24 @@ export default function ChildTasksPage() {
       ) : (
         <div className="grid grid-cols-2 gap-3">
           {tasks.map((task, index) => {
-            const isLastOdd = tasks.length % 2 === 1 && index === tasks.length - 1;
+            const isLastOdd =
+              tasks.length % 2 === 1 && index === tasks.length - 1;
             return (
-              <div key={task.id} className={isLastOdd ? "col-span-2 max-w-[50%] mx-auto w-full" : ""}>
-                <TaskToggleButton
-                  task={task}
-                  isCompleted={task.isCompleted}
-                  onToggle={handleToggle}
-                />
+              <div
+                key={task.id}
+                className={
+                  isLastOdd
+                    ? "col-span-2 flex justify-center"
+                    : ""
+                }
+              >
+                <div className={isLastOdd ? "w-[calc(50%-6px)]" : "w-full"}>
+                  <TaskToggleButton
+                    task={task}
+                    isCompleted={task.isCompleted}
+                    onToggle={handleToggle}
+                  />
+                </div>
               </div>
             );
           })}

@@ -56,7 +56,7 @@ export default function LoginPage() {
                 type="text"
                 value={israeliId}
                 onChange={(e) => setIsraeliId(e.target.value)}
-                placeholder="הזן תעודת זהות"
+                placeholder="הזן ת.ז. הורה"
                 className="input-field text-center text-xl tracking-widest"
                 inputMode="numeric"
                 maxLength={9}

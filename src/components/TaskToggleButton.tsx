@@ -49,7 +49,7 @@ export default function TaskToggleButton({
     <button
       onClick={handleClick}
       disabled={loading}
-      className={`relative rounded-2xl p-4 flex flex-col items-center justify-center gap-2 min-h-[120px] transition-all active:scale-95 ${
+      className={`relative rounded-2xl p-4 flex flex-col items-center justify-center gap-2 min-h-[120px] w-full h-full transition-all active:scale-95 ${
         completed
           ? "shadow-md"
           : "border-2 border-dashed hover:border-solid"
