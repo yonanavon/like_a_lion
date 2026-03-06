@@ -12,6 +12,7 @@ import {
   ChevronLeft,
   Crown,
   AlertTriangle,
+  GraduationCap,
 } from "lucide-react";
 import { TASK_ICONS } from "@/lib/icons";
 import { getHebrewDateDisplay } from "@/lib/hebrew-date";
@@ -101,6 +102,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [childrenTab, setChildrenTab] = useState<ChildrenTab>("notReported");
+  const [groupByGrade, setGroupByGrade] = useState(false);
 
   const loadData = useCallback(async (date?: string) => {
     setLoading(true);
@@ -403,22 +405,35 @@ export default function DashboardPage() {
 
       {/* Children Tabs */}
       <div className="card">
-        <div className="flex gap-1 mb-4 bg-gray-100 rounded-xl p-1">
-          <TabButton
-            active={childrenTab === "notReported"}
-            onClick={() => setChildrenTab("notReported")}
-            label={`לא דיווחו (${notReported.length})`}
-          />
-          <TabButton
-            active={childrenTab === "all"}
-            onClick={() => setChildrenTab("all")}
-            label={`פירוט יומי (${data.childrenStats.length})`}
-          />
-          <TabButton
-            active={childrenTab === "leaderboard"}
-            onClick={() => setChildrenTab("leaderboard")}
-            label="טבלת מובילים"
-          />
+        <div className="flex items-center gap-2 mb-4">
+          <div className="flex-1 flex gap-1 bg-gray-100 rounded-xl p-1">
+            <TabButton
+              active={childrenTab === "notReported"}
+              onClick={() => setChildrenTab("notReported")}
+              label={`לא דיווחו (${notReported.length})`}
+            />
+            <TabButton
+              active={childrenTab === "all"}
+              onClick={() => setChildrenTab("all")}
+              label={`פירוט יומי (${data.childrenStats.length})`}
+            />
+            <TabButton
+              active={childrenTab === "leaderboard"}
+              onClick={() => setChildrenTab("leaderboard")}
+              label="מובילים"
+            />
+          </div>
+          <button
+            onClick={() => setGroupByGrade(!groupByGrade)}
+            className={`p-2.5 rounded-xl transition-colors shrink-0 ${
+              groupByGrade
+                ? "bg-blue-100 text-blue-600"
+                : "bg-gray-100 text-gray-400 hover:text-gray-600"
+            }`}
+            title="חלוקה לפי כיתות"
+          >
+            <GraduationCap size={18} />
+          </button>
         </div>
 
         {childrenTab === "notReported" && (
@@ -429,167 +444,191 @@ export default function DashboardPage() {
                 <p className="font-medium">כל התלמידים דיווחו!</p>
               </div>
             ) : (
+              <GradeGroupWrapper
+                enabled={groupByGrade}
+                items={notReported}
+                getGrade={(c) => c.grade}
+              >
+                {(children) => (
+                  <div className="space-y-2">
+                    {children.map((child) => (
+                      <div
+                        key={child.id}
+                        className="flex items-center gap-3 p-3 bg-red-50 rounded-xl"
+                      >
+                        <AlertTriangle size={18} className="text-red-400 shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm">
+                            {child.firstName} {child.lastName}
+                            {!groupByGrade && child.grade && (
+                              <span className="text-gray-400 font-normal">
+                                {" "}
+                                - {child.grade}
+                              </span>
+                            )}
+                          </p>
+                          <p className="text-xs text-gray-400">
+                            {child.parent1Name}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </GradeGroupWrapper>
+            )}
+          </div>
+        )}
+
+        {childrenTab === "all" && (
+          <GradeGroupWrapper
+            enabled={groupByGrade}
+            items={[...reportedChildren, ...notReported]}
+            getGrade={(c) => c.grade}
+          >
+            {(children) => (
               <div className="space-y-2">
-                {notReported.map((child) => (
+                {children.map((child) => (
                   <div
                     key={child.id}
-                    className="flex items-center gap-3 p-3 bg-red-50 rounded-xl"
+                    className={`flex items-center gap-3 p-3 rounded-xl ${
+                      child.reported ? "bg-gray-50" : "bg-red-50"
+                    }`}
                   >
-                    <AlertTriangle size={18} className="text-red-400 shrink-0" />
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm">
-                        {child.firstName} {child.lastName}
-                        {child.grade && (
-                          <span className="text-gray-400 font-normal">
-                            {" "}
-                            - {child.grade}
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium text-sm">
+                          {child.firstName} {child.lastName}
+                        </p>
+                        {!groupByGrade && child.grade && (
+                          <span className="text-xs text-gray-400">
+                            {child.grade}
                           </span>
                         )}
+                      </div>
+                      <div className="flex items-center gap-1.5 mt-1.5">
+                        {child.completedTasks.map((ct) => {
+                          const task = data.taskStats.find(
+                            (t) => t.id === ct.taskId
+                          );
+                          if (!task) return null;
+                          const Icon = TASK_ICONS[task.icon] || TASK_ICONS.Star;
+                          return (
+                            <div
+                              key={ct.taskId}
+                              className={`w-7 h-7 rounded-md flex items-center justify-center ${
+                                ct.completed ? "" : "opacity-20"
+                              }`}
+                              style={{
+                                backgroundColor: ct.completed
+                                  ? task.color + "20"
+                                  : "#f3f4f6",
+                              }}
+                              title={task.name}
+                            >
+                              <Icon
+                                size={14}
+                                color={ct.completed ? task.color : "#9ca3af"}
+                              />
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    <div className="text-left shrink-0">
+                      <p
+                        className={`text-sm font-bold ${
+                          child.dayPercentage === 100
+                            ? "text-green-600"
+                            : child.dayPercentage > 0
+                              ? "text-amber-600"
+                              : "text-gray-300"
+                        }`}
+                      >
+                        {child.dayPercentage}%
                       </p>
-                      <p className="text-xs text-gray-400">
-                        {child.parent1Name}
+                      <p className="text-[11px] text-gray-400">
+                        {child.dayPoints}/{child.maxPointsPerDay}
                       </p>
                     </div>
                   </div>
                 ))}
               </div>
             )}
-          </div>
-        )}
-
-        {childrenTab === "all" && (
-          <div className="space-y-2">
-            {[...reportedChildren, ...notReported].map((child) => (
-              <div
-                key={child.id}
-                className={`flex items-center gap-3 p-3 rounded-xl ${
-                  child.reported ? "bg-gray-50" : "bg-red-50"
-                }`}
-              >
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className="font-medium text-sm">
-                      {child.firstName} {child.lastName}
-                    </p>
-                    {child.grade && (
-                      <span className="text-xs text-gray-400">
-                        {child.grade}
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-1.5 mt-1.5">
-                    {child.completedTasks.map((ct) => {
-                      const task = data.taskStats.find(
-                        (t) => t.id === ct.taskId
-                      );
-                      if (!task) return null;
-                      const Icon = TASK_ICONS[task.icon] || TASK_ICONS.Star;
-                      return (
-                        <div
-                          key={ct.taskId}
-                          className={`w-7 h-7 rounded-md flex items-center justify-center ${
-                            ct.completed ? "" : "opacity-20"
-                          }`}
-                          style={{
-                            backgroundColor: ct.completed
-                              ? task.color + "20"
-                              : "#f3f4f6",
-                          }}
-                          title={task.name}
-                        >
-                          <Icon
-                            size={14}
-                            color={ct.completed ? task.color : "#9ca3af"}
-                          />
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-                <div className="text-left shrink-0">
-                  <p
-                    className={`text-sm font-bold ${
-                      child.dayPercentage === 100
-                        ? "text-green-600"
-                        : child.dayPercentage > 0
-                          ? "text-amber-600"
-                          : "text-gray-300"
-                    }`}
-                  >
-                    {child.dayPercentage}%
-                  </p>
-                  <p className="text-[11px] text-gray-400">
-                    {child.dayPoints}/{child.maxPointsPerDay}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
+          </GradeGroupWrapper>
         )}
 
         {childrenTab === "leaderboard" && (
-          <div className="space-y-2">
-            {data.leaderboard.map((child, idx) => (
-              <div
-                key={child.id}
-                className={`flex items-center gap-3 p-3 rounded-xl ${
-                  idx < 3 ? "bg-amber-50" : "bg-gray-50"
-                }`}
-              >
-                <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-sm font-bold ${
-                    idx === 0
-                      ? "bg-amber-400 text-white"
-                      : idx === 1
-                        ? "bg-gray-300 text-white"
-                        : idx === 2
-                          ? "bg-amber-600 text-white"
-                          : "bg-gray-100 text-gray-500"
-                  }`}
-                >
-                  {idx < 3 ? (
-                    <Crown size={16} />
-                  ) : (
-                    idx + 1
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-sm">
-                    {child.firstName} {child.lastName}
-                    {child.grade && (
-                      <span className="text-gray-400 font-normal">
-                        {" "}
-                        - {child.grade}
-                      </span>
-                    )}
-                  </p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full rounded-full ${
-                          child.percentage >= 80
-                            ? "bg-green-500"
-                            : child.percentage >= 50
-                              ? "bg-amber-500"
-                              : "bg-red-400"
-                        }`}
-                        style={{ width: `${child.percentage}%` }}
-                      />
+          <GradeGroupWrapper
+            enabled={groupByGrade}
+            items={data.leaderboard}
+            getGrade={(c) => c.grade}
+          >
+            {(children) => (
+              <div className="space-y-2">
+                {children.map((child, idx) => (
+                  <div
+                    key={child.id}
+                    className={`flex items-center gap-3 p-3 rounded-xl ${
+                      idx < 3 ? "bg-amber-50" : "bg-gray-50"
+                    }`}
+                  >
+                    <div
+                      className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-sm font-bold ${
+                        idx === 0
+                          ? "bg-amber-400 text-white"
+                          : idx === 1
+                            ? "bg-gray-300 text-white"
+                            : idx === 2
+                              ? "bg-amber-600 text-white"
+                              : "bg-gray-100 text-gray-500"
+                      }`}
+                    >
+                      {idx < 3 ? (
+                        <Crown size={16} />
+                      ) : (
+                        idx + 1
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm">
+                        {child.firstName} {child.lastName}
+                        {!groupByGrade && child.grade && (
+                          <span className="text-gray-400 font-normal">
+                            {" "}
+                            - {child.grade}
+                          </span>
+                        )}
+                      </p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                          <div
+                            className={`h-full rounded-full ${
+                              child.percentage >= 80
+                                ? "bg-green-500"
+                                : child.percentage >= 50
+                                  ? "bg-amber-500"
+                                  : "bg-red-400"
+                            }`}
+                            style={{ width: `${child.percentage}%` }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-left shrink-0">
+                      <p className="flex items-center gap-1 text-sm font-bold text-amber-600">
+                        <Trophy size={14} />
+                        {child.totalPoints}
+                      </p>
+                      <p className="text-[11px] text-gray-400">
+                        {child.percentage}%
+                      </p>
                     </div>
                   </div>
-                </div>
-                <div className="text-left shrink-0">
-                  <p className="flex items-center gap-1 text-sm font-bold text-amber-600">
-                    <Trophy size={14} />
-                    {child.totalPoints}
-                  </p>
-                  <p className="text-[11px] text-gray-400">
-                    {child.percentage}%
-                  </p>
-                </div>
+                ))}
               </div>
-            ))}
-          </div>
+            )}
+          </GradeGroupWrapper>
         )}
       </div>
     </div>
@@ -626,6 +665,52 @@ function StatCard({
           {subValue}
         </p>
       )}
+    </div>
+  );
+}
+
+function GradeGroupWrapper<T>({
+  enabled,
+  items,
+  getGrade,
+  children,
+}: {
+  enabled: boolean;
+  items: T[];
+  getGrade: (item: T) => string;
+  children: (items: T[]) => React.ReactNode;
+}) {
+  if (!enabled) {
+    return <>{children(items)}</>;
+  }
+
+  const groups: Record<string, T[]> = {};
+  for (const item of items) {
+    const grade = getGrade(item) || "ללא כיתה";
+    if (!groups[grade]) groups[grade] = [];
+    groups[grade].push(item);
+  }
+
+  const sortedGrades = Object.keys(groups).sort((a, b) =>
+    a.localeCompare(b, "he")
+  );
+
+  return (
+    <div className="space-y-4">
+      {sortedGrades.map((grade) => (
+        <div key={grade}>
+          <div className="flex items-center gap-2 mb-2">
+            <GraduationCap size={16} className="text-blue-500" />
+            <h3 className="text-sm font-semibold text-blue-700">
+              כיתה {grade}
+            </h3>
+            <span className="text-xs text-gray-400">
+              ({groups[grade].length})
+            </span>
+          </div>
+          {children(groups[grade])}
+        </div>
+      ))}
     </div>
   );
 }
