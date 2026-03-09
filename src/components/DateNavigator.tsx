@@ -29,7 +29,12 @@ export default function DateNavigator({
   const today = parseDate(getIsraelToday());
   const startDate = parseDate(campaignStartDate);
 
-  const prevDate = getPreviousActiveDay(date, startDate, activeWeekdays);
+  // Allow reporting only for today and yesterday
+  const yesterday = new Date(today);
+  yesterday.setUTCDate(yesterday.getUTCDate() - 1);
+  const earliestDate = startDate > yesterday ? startDate : yesterday;
+
+  const prevDate = getPreviousActiveDay(date, earliestDate, activeWeekdays);
   const nextDate = getNextActiveDay(date, today, activeWeekdays);
 
   return (

@@ -100,6 +100,16 @@ export async function POST(
     );
   }
 
+  // Only allow reporting for today and yesterday
+  const yesterday = new Date(today);
+  yesterday.setUTCDate(yesterday.getUTCDate() - 1);
+  if (date < yesterday) {
+    return NextResponse.json(
+      { error: "לא ניתן לדווח על תאריך שעבר יותר מיום אחד" },
+      { status: 400 }
+    );
+  }
+
   // Check campaign constraints
   const campaign = await prisma.campaign.findUnique({
     where: { id: "singleton" },
