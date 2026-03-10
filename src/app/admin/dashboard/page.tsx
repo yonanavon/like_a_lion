@@ -13,6 +13,7 @@ import {
   Crown,
   AlertTriangle,
   GraduationCap,
+  Download,
 } from "lucide-react";
 import { TASK_ICONS } from "@/lib/icons";
 import { getHebrewDateDisplay } from "@/lib/hebrew-date";
@@ -165,7 +166,17 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6 pb-8">
-      <h1 className="text-2xl font-bold">דשבורד</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">דשבורד</h1>
+        <a
+          href="/api/admin/export"
+          download
+          className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-xl text-sm font-medium hover:bg-green-700 transition-colors"
+        >
+          <Download size={16} />
+          ייצוא אקסל
+        </a>
+      </div>
 
       {/* Date Navigator */}
       <div className="card flex items-center justify-between">
