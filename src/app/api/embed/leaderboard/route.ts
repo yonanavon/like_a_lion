@@ -42,10 +42,8 @@ export async function GET(request: NextRequest) {
     })
   );
 
-  // Filter out children with 0 points, then sort by points descending
-  const filtered = results
-    .filter((c) => c.totalPoints > 0)
-    .sort((a, b) => b.totalPoints - a.totalPoints);
+  // Sort by points descending
+  const sorted = results.sort((a, b) => b.totalPoints - a.totalPoints);
 
-  return NextResponse.json({ grade: gradeHebrew, children: filtered });
+  return NextResponse.json({ grade: gradeHebrew, children: sorted });
 }
