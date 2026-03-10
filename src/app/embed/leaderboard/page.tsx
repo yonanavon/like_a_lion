@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Trophy, Crown } from "lucide-react";
 
@@ -9,7 +9,21 @@ interface Child {
   totalPoints: number;
 }
 
-export default function LeaderboardEmbed() {
+export default function LeaderboardEmbedPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full" />
+        </div>
+      }
+    >
+      <LeaderboardEmbed />
+    </Suspense>
+  );
+}
+
+function LeaderboardEmbed() {
   const searchParams = useSearchParams();
   const grade = searchParams.get("grade");
 
