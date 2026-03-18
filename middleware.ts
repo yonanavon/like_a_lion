@@ -38,11 +38,25 @@ export async function middleware(request: NextRequest) {
 
   // Protect admin routes
   if ((pathname.startsWith("/admin") && pathname !== "/admin/login") || pathname.startsWith("/api/admin")) {
-    if (session.role !== "admin") {
-      if (pathname.startsWith("/api/")) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    // Questions routes: allow admin or teacher
+    const isQuestionsRoute =
+      pathname.startsWith("/admin/questions") ||
+      pathname.startsWith("/api/admin/questions");
+
+    if (isQuestionsRoute) {
+      if (session.role !== "admin" && session.role !== "teacher") {
+        if (pathname.startsWith("/api/")) {
+          return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+        return NextResponse.redirect(new URL("/admin/login", request.url));
       }
-      return NextResponse.redirect(new URL("/admin/login", request.url));
+    } else {
+      if (session.role !== "admin") {
+        if (pathname.startsWith("/api/")) {
+          return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+        return NextResponse.redirect(new URL("/admin/login", request.url));
+      }
     }
   }
 

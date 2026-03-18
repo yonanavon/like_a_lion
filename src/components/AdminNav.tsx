@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import {
   ListTodo,
   Users,
@@ -10,20 +11,36 @@ import {
   LogOut,
   LayoutDashboard,
   BarChart3,
+  HelpCircle,
 } from "lucide-react";
 
-const navItems = [
+const allNavItems = [
   { href: "/admin", label: "ראשי", icon: LayoutDashboard },
   { href: "/admin/dashboard", label: "דשבורד", icon: BarChart3 },
   { href: "/admin/tasks", label: "משימות", icon: ListTodo },
   { href: "/admin/students", label: "תלמידים", icon: Users },
   { href: "/admin/days", label: "ימים", icon: Calendar },
   { href: "/admin/messages", label: "מבזקים", icon: Megaphone },
+  { href: "/admin/questions", label: "שאלות", icon: HelpCircle },
+];
+
+const teacherNavItems = [
+  { href: "/admin/questions", label: "שאלות", icon: HelpCircle },
 ];
 
 export default function AdminNav() {
   const pathname = usePathname();
   const router = useRouter();
+  const [role, setRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then((res) => res.json())
+      .then((data) => setRole(data.role))
+      .catch(() => {});
+  }, []);
+
+  const navItems = role === "teacher" ? teacherNavItems : allNavItems;
 
   const handleLogout = async () => {
     await fetch("/api/auth/logout", { method: "POST" });

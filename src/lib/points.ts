@@ -7,7 +7,7 @@ export async function calculateChildPoints(childId: string) {
   });
 
   if (!campaign) {
-    return { totalPoints: 0, percentage: 0, maxPoints: 0 };
+    return { totalPoints: 0, percentage: 0, maxPoints: 0, quizPoints: 0 };
   }
 
   const activeTasks = await prisma.task.findMany({
@@ -29,12 +29,20 @@ export async function calculateChildPoints(childId: string) {
     include: { task: true },
   });
 
-  const totalPoints = completions.reduce(
+  const taskPoints = completions.reduce(
     (sum, c) => sum + c.task.points,
     0
   );
 
-  const percentage = maxPoints > 0 ? Math.round((totalPoints / maxPoints) * 100) : 0;
+  // Quiz points: count correct answers
+  const quizPoints = await prisma.questionAnswer.count({
+    where: { childId, isCorrect: true },
+  });
 
-  return { totalPoints, percentage, maxPoints };
+  const totalPoints = taskPoints + quizPoints;
+
+  // Percentage remains task-based only
+  const percentage = maxPoints > 0 ? Math.round((taskPoints / maxPoints) * 100) : 0;
+
+  return { totalPoints, percentage, maxPoints, quizPoints };
 }

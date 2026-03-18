@@ -1,19 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { calculateChildPoints } from "@/lib/points";
+import { GRADE_MAP } from "@/lib/grades";
 
 export const dynamic = "force-dynamic";
-
-const GRADE_MAP: Record<string, string> = {
-  "1": "א",
-  "2": "ב",
-  "3": "ג",
-  "4": "ד",
-  "5": "ה",
-  "6": "ו",
-  "7": "ז",
-  "8": "ח",
-};
 
 export async function GET(request: NextRequest) {
   const gradeParam = request.nextUrl.searchParams.get("grade");

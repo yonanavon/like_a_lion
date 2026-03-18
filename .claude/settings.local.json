@@ -7,7 +7,22 @@
       "Bash(npx next:*)",
       "Bash(npx prisma:*)",
       "Bash(mkdir:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(node:*)",
+      "Bash(cp:*)",
+      "Bash(ls:*)",
+      "Bash(npx tsc:*)",
+      "Bash(git push:*)",
+      "Bash(git:*)",
+      "Bash(npm list:*)",
+      "Bash(railway version:*)",
+      "Bash(railway:*)",
+      "Bash(RAILWAY_TOKEN=fbbca75d-1ba7-4d90-bce5-7d0f4baf95e5 railway status:*)",
+      "Bash(curl:*)",
+      "Bash(find /c/likealion/src/app/embed -type f -name *.tsx -o -name *.ts)",
+      "Bash(find /c/likealion/src/app/parent -name *.tsx)",
+      "Bash(find /c/likealion/src/app/admin -name *.tsx)",
+      "Bash(find /c/likealion/src -name *context* -type f)"
     ]
   }
 }

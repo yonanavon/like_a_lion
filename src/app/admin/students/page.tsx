@@ -8,6 +8,7 @@ interface Child {
   firstName: string;
   lastName: string;
   grade: string;
+  israeliId: string | null;
   parent1: { israeliId: string; displayName: string };
   parent2: { israeliId: string; displayName: string } | null;
   totalPoints: number;
@@ -21,6 +22,7 @@ export default function StudentsPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [importResult, setImportResult] = useState<{
     created: number;
+    updated: number;
     errors: string[];
   } | null>(null);
   const [importing, setImporting] = useState(false);
@@ -29,6 +31,7 @@ export default function StudentsPage() {
     firstName: "",
     lastName: "",
     grade: "",
+    childIsraeliId: "",
     parent1Id: "",
     parent1Name: "",
     parent2Id: "",
@@ -49,6 +52,7 @@ export default function StudentsPage() {
       firstName: "",
       lastName: "",
       grade: "",
+      childIsraeliId: "",
       parent1Id: "",
       parent1Name: "",
       parent2Id: "",
@@ -87,6 +91,7 @@ export default function StudentsPage() {
       firstName: child.firstName,
       lastName: child.lastName,
       grade: child.grade || "",
+      childIsraeliId: child.israeliId || "",
       parent1Id: child.parent1.israeliId,
       parent1Name: child.parent1.displayName,
       parent2Id: child.parent2?.israeliId || "",
@@ -124,10 +129,10 @@ export default function StudentsPage() {
         setImportResult(result);
         loadChildren();
       } else {
-        setImportResult({ created: 0, errors: [result.error] });
+        setImportResult({ created: 0, updated: 0, errors: [result.error] });
       }
     } catch {
-      setImportResult({ created: 0, errors: ["שגיאת חיבור"] });
+      setImportResult({ created: 0, updated: 0, errors: ["שגיאת חיבור"] });
     } finally {
       setImporting(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -136,8 +141,8 @@ export default function StudentsPage() {
 
   const downloadTemplate = () => {
     const bom = "\uFEFF";
-    const header = "שם פרטי,שם משפחה,כיתה,ת.ז. הורה 1,שם הורה 1,ת.ז. הורה 2,שם הורה 2";
-    const example = "ישראל,ישראלי,ג,123456789,אבא ישראלי,987654321,אמא ישראלי";
+    const header = "שם פרטי,שם משפחה,כיתה,ת.ז. הורה 1,שם הורה 1,ת.ז. הורה 2,שם הורה 2,ת.ז. תלמיד";
+    const example = "ישראל,ישראלי,ג,123456789,אבא ישראלי,987654321,אמא ישראלי,111222333";
     const csv = bom + header + "\n" + example + "\n";
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
@@ -148,11 +153,35 @@ export default function StudentsPage() {
     URL.revokeObjectURL(url);
   };
 
+  const exportForIdUpdate = () => {
+    const bom = "\uFEFF";
+    const header = "id,שם פרטי,שם משפחה,כיתה,ת.ז. תלמיד";
+    const rows = children.map(
+      (c) => `${c.id},${c.firstName},${c.lastName},${c.grade},${c.israeliId || ""}`
+    );
+    const csv = bom + header + "\n" + rows.join("\n") + "\n";
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "students_id_update.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">ניהול תלמידים</h1>
         <div className="flex items-center gap-2">
+          <button
+            onClick={exportForIdUpdate}
+            className="btn-secondary flex items-center gap-2"
+            title="ייצוא CSV לעדכון ת.ז. תלמיד"
+          >
+            <FileSpreadsheet size={20} />
+            <span className="hidden sm:inline">ייצוא ת.ז.</span>
+          </button>
           <button
             onClick={() => {
               setShowImport(!showImport);
@@ -197,11 +226,12 @@ export default function StudentsPage() {
               <li>השורה הראשונה היא שורת כותרת (תדלג אוטומטית)</li>
               <li>
                 סדר העמודות:
-                <strong> שם פרטי, שם משפחה, כיתה, ת.ז. הורה 1, שם הורה 1, ת.ז. הורה 2, שם הורה 2</strong>
+                <strong> שם פרטי, שם משפחה, כיתה, ת.ז. הורה 1, שם הורה 1, ת.ז. הורה 2, שם הורה 2, ת.ז. תלמיד</strong>
               </li>
               <li>העמודות <strong>שם פרטי, שם משפחה, ת.ז. הורה 1, שם הורה 1</strong> הן חובה</li>
-              <li>עמודות <strong>ת.ז. הורה 2, שם הורה 2</strong> הן אופציונליות (ניתן להשאיר ריק)</li>
+              <li>עמודות <strong>ת.ז. הורה 2, שם הורה 2, ת.ז. תלמיד</strong> הן אופציונליות</li>
               <li>אם הורה כבר קיים במערכת (לפי ת.ז.) - שמו יעודכן</li>
+              <li>אם יש עמודת <strong>id</strong> בהתחלה - ניתן לעדכן תלמידים קיימים (שימושי לעדכון ת.ז.)</li>
               <li>שמירת הקובץ: <strong>UTF-8 עם BOM</strong> מומלץ לעברית תקינה</li>
             </ul>
           </div>
@@ -238,9 +268,15 @@ export default function StudentsPage() {
 
           {importResult && (
             <div className="mt-4 space-y-2">
-              {importResult.created > 0 && (
+              {(importResult.created > 0 || importResult.updated > 0) && (
                 <div className="bg-green-50 border border-green-200 rounded-xl p-3 text-green-800 text-sm">
-                  יובאו בהצלחה <strong>{importResult.created}</strong> תלמידים
+                  {importResult.created > 0 && (
+                    <>יובאו בהצלחה <strong>{importResult.created}</strong> תלמידים</>
+                  )}
+                  {importResult.created > 0 && importResult.updated > 0 && " | "}
+                  {importResult.updated > 0 && (
+                    <>עודכנו <strong>{importResult.updated}</strong> תלמידים</>
+                  )}
                 </div>
               )}
               {importResult.errors.length > 0 && (
@@ -289,13 +325,23 @@ export default function StudentsPage() {
               />
             </div>
 
-            <input
-              type="text"
-              value={form.grade}
-              onChange={(e) => setForm({ ...form, grade: e.target.value })}
-              placeholder="כיתה (לדוגמה: ג, ד׳1)"
-              className="input-field"
-            />
+            <div className="grid grid-cols-2 gap-3">
+              <input
+                type="text"
+                value={form.grade}
+                onChange={(e) => setForm({ ...form, grade: e.target.value })}
+                placeholder="כיתה (לדוגמה: ג, ד׳1)"
+                className="input-field"
+              />
+              <input
+                type="text"
+                value={form.childIsraeliId}
+                onChange={(e) => setForm({ ...form, childIsraeliId: e.target.value })}
+                placeholder="ת.ז. תלמיד (אופציונלי)"
+                className="input-field"
+                inputMode="numeric"
+              />
+            </div>
 
             <div className="border-t pt-4">
               <p className="text-sm font-medium text-gray-700 mb-2">הורה 1</p>
@@ -376,6 +422,7 @@ export default function StudentsPage() {
                 הורה 1: {child.parent1.displayName} ({child.parent1.israeliId})
                 {child.parent2 &&
                   ` | הורה 2: ${child.parent2.displayName} (${child.parent2.israeliId})`}
+                {child.israeliId && ` | ת.ז. תלמיד: ${child.israeliId}`}
               </p>
             </div>
             <div className="flex items-center gap-1">

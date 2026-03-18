@@ -24,6 +24,7 @@ model Child {
   firstName String   @map("first_name")
   lastName  String   @map("last_name")
   grade     String   @default("")
+  israeliId String?  @unique @map("israeli_id_child")
   createdAt DateTime @default(now()) @map("created_at")
 
   parent1Id String  @map("parent1_id")
@@ -33,6 +34,7 @@ model Child {
   parent2   Parent? @relation("Parent2", fields: [parent2Id], references: [id])
 
   completions TaskCompletion[]
+  answers     QuestionAnswer[]
 
   @@map("children")
 }
@@ -81,4 +83,33 @@ model FlashMessage {
   createdAt DateTime @default(now()) @map("created_at")
 
   @@map("flash_messages")
+}
+
+model Question {
+  id                 String   @id @default(cuid())
+  text               String
+  grade              String
+  options            String[]
+  correctAnswerIndex Int      @map("correct_answer_index")
+  isArchived         Boolean  @default(false) @map("is_archived")
+  createdAt          DateTime @default(now()) @map("created_at")
+
+  answers QuestionAnswer[]
+
+  @@map("questions")
+}
+
+model QuestionAnswer {
+  id                  String   @id @default(cuid())
+  childId             String   @map("child_id")
+  questionId          String   @map("question_id")
+  selectedAnswerIndex Int      @map("selected_answer_index")
+  isCorrect           Boolean  @map("is_correct")
+  answeredAt          DateTime @default(now()) @map("answered_at")
+
+  child    Child    @relation(fields: [childId], references: [id], onDelete: Cascade)
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([childId, questionId])
+  @@map("question_answers")
 }

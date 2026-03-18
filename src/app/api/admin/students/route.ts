@@ -23,7 +23,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
-  const { firstName, lastName, grade, parent1Id, parent1Name, parent2Id, parent2Name } = body;
+  const { firstName, lastName, grade, parent1Id, parent1Name, parent2Id, parent2Name, childIsraeliId } = body;
 
   if (!firstName || !lastName || !parent1Id || !parent1Name) {
     return NextResponse.json(
@@ -34,6 +34,7 @@ export async function POST(request: NextRequest) {
 
   const cleanParent1Id = normalizeIsraeliId(parent1Id);
   const cleanParent2Id = parent2Id ? normalizeIsraeliId(parent2Id) : null;
+  const cleanChildId = childIsraeliId ? normalizeIsraeliId(childIsraeliId) : null;
 
   // Upsert parent 1
   const p1 = await prisma.parent.upsert({
@@ -57,6 +58,7 @@ export async function POST(request: NextRequest) {
       firstName,
       lastName,
       grade: grade || "",
+      israeliId: cleanChildId,
       parent1Id: p1.id,
       parent2Id: p2?.id || null,
     },

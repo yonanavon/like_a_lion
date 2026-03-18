@@ -5,7 +5,10 @@ import type { SessionData } from "@/lib/auth";
 export async function POST(request: NextRequest) {
   const { password } = await request.json();
 
-  if (password !== process.env.ADMIN_PASSWORD) {
+  const isAdmin = password === process.env.ADMIN_PASSWORD;
+  const isTeacher = !isAdmin && !!process.env.TEACHER_PASSWORD && password === process.env.TEACHER_PASSWORD;
+
+  if (!isAdmin && !isTeacher) {
     return NextResponse.json({ error: "סיסמה שגויה" }, { status: 401 });
   }
 
@@ -20,7 +23,7 @@ export async function POST(request: NextRequest) {
     },
   });
 
-  session.role = "admin";
+  session.role = isAdmin ? "admin" : "teacher";
   await session.save();
 
   return response;

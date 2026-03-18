@@ -2,7 +2,7 @@ import { getIronSession } from "iron-session";
 import { cookies } from "next/headers";
 
 export interface SessionData {
-  role?: "parent" | "admin";
+  role?: "parent" | "admin" | "teacher";
   parentId?: string;
 }
 
@@ -36,6 +36,14 @@ export function normalizeIsraeliId(id: string): string {
 export async function requireAdmin() {
   const session = await getSession();
   if (session.role !== "admin") {
+    return null;
+  }
+  return session;
+}
+
+export async function requireAdminOrTeacher() {
+  const session = await getSession();
+  if (session.role !== "admin" && session.role !== "teacher") {
     return null;
   }
   return session;
