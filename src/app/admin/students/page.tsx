@@ -155,9 +155,9 @@ export default function StudentsPage() {
 
   const exportForIdUpdate = () => {
     const bom = "\uFEFF";
-    const header = "id,שם פרטי,שם משפחה,כיתה,ת.ז. תלמיד";
+    const header = "id,שם פרטי,שם משפחה,כיתה,ת.ז. תלמיד,ת.ז. הורה 1,ת.ז. הורה 2";
     const rows = children.map(
-      (c) => `${c.id},${c.firstName},${c.lastName},${c.grade},${c.israeliId || ""}`
+      (c) => `${c.id},${c.firstName},${c.lastName},${c.grade},${c.israeliId || ""},${c.parent1?.israeliId || ""},${c.parent2?.israeliId || ""}`
     );
     const csv = bom + header + "\n" + rows.join("\n") + "\n";
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
