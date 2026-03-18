@@ -7,6 +7,7 @@ export const dynamic = "force-dynamic";
 
 export async function GET() {
   const children = await prisma.child.findMany({
+    include: { parent1: true, parent2: true },
     orderBy: [{ grade: "asc" }, { lastName: "asc" }, { firstName: "asc" }],
   });
 
@@ -16,6 +17,9 @@ export async function GET() {
       return {
         name: `${child.firstName} ${child.lastName}`,
         grade: child.grade,
+        childIsraeliId: child.israeliId || "",
+        parent1IsraeliId: child.parent1?.israeliId || "",
+        parent2IsraeliId: child.parent2?.israeliId || "",
         totalPoints: points.totalPoints,
         percentage: points.percentage,
       };
@@ -30,6 +34,9 @@ export async function GET() {
   sheet.columns = [
     { header: "שם", key: "name", width: 25 },
     { header: "כיתה", key: "grade", width: 12 },
+    { header: "ת.ז. תלמיד", key: "childIsraeliId", width: 15 },
+    { header: "ת.ז. הורה 1", key: "parent1IsraeliId", width: 15 },
+    { header: "ת.ז. הורה 2", key: "parent2IsraeliId", width: 15 },
     { header: "סה״כ נקודות", key: "totalPoints", width: 15 },
     { header: "אחוז כללי", key: "percentage", width: 15 },
   ];
