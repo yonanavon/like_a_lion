@@ -24,6 +24,7 @@ interface ChildData {
 interface CampaignData {
   startDate: string;
   activeWeekdays: number[];
+  maxBackDays: number;
 }
 
 export default function ChildTasksPage() {
@@ -57,6 +58,7 @@ export default function ChildTasksPage() {
           setCampaign({
             startDate: data.campaign.startDate.split("T")[0],
             activeWeekdays: data.campaign.activeWeekdays,
+            maxBackDays: data.campaign.maxBackDays ?? 1,
           });
         }
       } catch {
@@ -126,6 +128,7 @@ export default function ChildTasksPage() {
             onDateChange={handleDateChange}
             campaignStartDate={campaign.startDate}
             activeWeekdays={campaign.activeWeekdays}
+            maxBackDays={campaign.maxBackDays}
           />
         </div>
       )}

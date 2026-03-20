@@ -19,13 +19,14 @@ export async function GET() {
 
 export async function PUT(request: NextRequest) {
   const body = await request.json();
-  const { startDate, activeWeekdays } = body;
+  const { startDate, activeWeekdays, maxBackDays } = body;
 
   const campaign = await prisma.campaign.upsert({
     where: { id: "singleton" },
     update: {
       ...(startDate !== undefined && { startDate: new Date(startDate) }),
       ...(activeWeekdays !== undefined && { activeWeekdays }),
+      ...(maxBackDays !== undefined && { maxBackDays }),
     },
     create: {
       id: "singleton",

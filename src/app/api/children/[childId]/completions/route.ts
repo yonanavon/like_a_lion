@@ -64,6 +64,7 @@ export async function GET(
       ? {
           startDate: campaign.startDate,
           activeWeekdays: campaign.activeWeekdays,
+          maxBackDays: campaign.maxBackDays,
         }
       : null,
   });
@@ -100,20 +101,21 @@ export async function POST(
     );
   }
 
-  // Only allow reporting for today and yesterday
-  const yesterday = new Date(today);
-  yesterday.setUTCDate(yesterday.getUTCDate() - 1);
-  if (date < yesterday) {
-    return NextResponse.json(
-      { error: "לא ניתן לדווח על תאריך שעבר יותר מיום אחד" },
-      { status: 400 }
-    );
-  }
-
   // Check campaign constraints
   const campaign = await prisma.campaign.findUnique({
     where: { id: "singleton" },
   });
+
+  // Only allow reporting up to maxBackDays in the past
+  const maxBackDays = campaign?.maxBackDays ?? 1;
+  const earliest = new Date(today);
+  earliest.setUTCDate(earliest.getUTCDate() - maxBackDays);
+  if (date < earliest) {
+    return NextResponse.json(
+      { error: `לא ניתן לדווח על תאריך שעבר יותר מ-${maxBackDays} ימים` },
+      { status: 400 }
+    );
+  }
 
   if (campaign) {
     if (date < campaign.startDate) {

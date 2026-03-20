@@ -72,6 +72,7 @@ model Campaign {
   id             String @id @default("singleton")
   startDate      DateTime @db.Date @map("start_date")
   activeWeekdays Int[]  @map("active_weekdays")
+  maxBackDays    Int    @default(1) @map("max_back_days")
 
   @@map("campaign")
 }

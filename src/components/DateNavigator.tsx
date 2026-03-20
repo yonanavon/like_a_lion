@@ -14,6 +14,7 @@ interface DateNavigatorProps {
   onDateChange: (date: string) => void;
   campaignStartDate: string;
   activeWeekdays: number[];
+  maxBackDays?: number;
 }
 
 export default function DateNavigator({
@@ -21,6 +22,7 @@ export default function DateNavigator({
   onDateChange,
   campaignStartDate,
   activeWeekdays,
+  maxBackDays = 1,
 }: DateNavigatorProps) {
   const date = parseDate(currentDate);
   const { hebrewDayOfWeek, hebrewDate, gregorianDate } =
@@ -29,10 +31,10 @@ export default function DateNavigator({
   const today = parseDate(getIsraelToday());
   const startDate = parseDate(campaignStartDate);
 
-  // Allow reporting only for today and yesterday
-  const yesterday = new Date(today);
-  yesterday.setUTCDate(yesterday.getUTCDate() - 1);
-  const earliestDate = startDate > yesterday ? startDate : yesterday;
+  // Allow reporting up to maxBackDays in the past
+  const earliest = new Date(today);
+  earliest.setUTCDate(earliest.getUTCDate() - maxBackDays);
+  const earliestDate = startDate > earliest ? startDate : earliest;
 
   const prevDate = getPreviousActiveDay(date, earliestDate, activeWeekdays);
   const nextDate = getNextActiveDay(date, today, activeWeekdays);

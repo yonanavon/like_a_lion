@@ -16,6 +16,7 @@ const WEEKDAYS = [
 export default function DaysPage() {
   const [startDate, setStartDate] = useState("");
   const [activeWeekdays, setActiveWeekdays] = useState<number[]>([]);
+  const [maxBackDays, setMaxBackDays] = useState(1);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -25,6 +26,7 @@ export default function DaysPage() {
       .then((data) => {
         setStartDate(data.startDate?.split("T")[0] || "");
         setActiveWeekdays(data.activeWeekdays || []);
+        setMaxBackDays(data.maxBackDays ?? 1);
       });
   }, []);
 
@@ -40,7 +42,7 @@ export default function DaysPage() {
     await fetch("/api/admin/campaign", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ startDate, activeWeekdays }),
+      body: JSON.stringify({ startDate, activeWeekdays, maxBackDays }),
     });
     setSaving(false);
     setSaved(true);
@@ -65,6 +67,26 @@ export default function DaysPage() {
             }}
             className="input-field w-full sm:w-64"
           />
+        </div>
+
+        <div>
+          <label className="text-sm font-medium text-gray-700 mb-2 block">
+            כמה ימים אחורה ניתן לעדכן משימות
+          </label>
+          <input
+            type="number"
+            min={0}
+            max={30}
+            value={maxBackDays}
+            onChange={(e) => {
+              setMaxBackDays(Math.max(0, parseInt(e.target.value) || 0));
+              setSaved(false);
+            }}
+            className="input-field w-full sm:w-64"
+          />
+          <p className="text-xs text-gray-500 mt-1">
+            0 = רק היום, 1 = היום ואתמול, וכו׳
+          </p>
         </div>
 
         <div>
