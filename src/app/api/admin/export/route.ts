@@ -84,7 +84,7 @@ export async function GET() {
 
   for (const child of childrenWithPoints) {
     const row = sheet.addRow(child);
-    row.getCell("percentage").value = child.percentage / 100;
+    row.getCell("percentage").value = Number(child.percentage) / 100;
   }
 
   // Format percentage column
