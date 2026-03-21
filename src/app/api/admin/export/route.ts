@@ -6,15 +6,37 @@ import ExcelJS from "exceljs";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const children = await prisma.child.findMany({
-    include: { parent1: true, parent2: true },
-    orderBy: [{ grade: "asc" }, { lastName: "asc" }, { firstName: "asc" }],
+  const [children, activeTasks] = await Promise.all([
+    prisma.child.findMany({
+      include: { parent1: true, parent2: true },
+      orderBy: [{ grade: "asc" }, { lastName: "asc" }, { firstName: "asc" }],
+    }),
+    prisma.task.findMany({
+      where: { isActive: true },
+      orderBy: { sortOrder: "asc" },
+    }),
+  ]);
+
+  // Fetch all completions grouped by child and task
+  const allCompletions = await prisma.taskCompletion.findMany({
+    select: { childId: true, taskId: true, task: { select: { points: true } } },
   });
+
+  // Build a map: childId -> taskId -> total points earned
+  const completionMap = new Map<string, Map<string, number>>();
+  for (const c of allCompletions) {
+    if (!completionMap.has(c.childId)) {
+      completionMap.set(c.childId, new Map());
+    }
+    const taskMap = completionMap.get(c.childId)!;
+    taskMap.set(c.taskId, (taskMap.get(c.taskId) || 0) + c.task.points);
+  }
 
   const childrenWithPoints = await Promise.all(
     children.map(async (child) => {
       const points = await calculateChildPoints(child.id);
-      return {
+      const taskMap = completionMap.get(child.id);
+      const row: Record<string, string | number> = {
         name: `${child.firstName} ${child.lastName}`,
         grade: child.grade,
         childIsraeliId: child.israeliId || "",
@@ -23,6 +45,10 @@ export async function GET() {
         totalPoints: points.totalPoints,
         percentage: points.percentage,
       };
+      for (const task of activeTasks) {
+        row[`task_${task.id}`] = taskMap?.get(task.id) || 0;
+      }
+      return row;
     })
   );
 
@@ -39,6 +65,11 @@ export async function GET() {
     { header: "ת.ז. הורה 2", key: "parent2IsraeliId", width: 15 },
     { header: "סה״כ נקודות", key: "totalPoints", width: 15 },
     { header: "אחוז כללי", key: "percentage", width: 15 },
+    ...activeTasks.map((task) => ({
+      header: `${task.name} (${task.points} נק׳)`,
+      key: `task_${task.id}`,
+      width: 18,
+    })),
   ];
 
   // Style header row
