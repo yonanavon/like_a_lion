@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Save, Check } from "lucide-react";
+import { Save, Check, AlertTriangle, Trash2 } from "lucide-react";
 
 const WEEKDAYS = [
   { day: 0, label: "א׳", name: "ראשון" },
@@ -19,6 +19,9 @@ export default function DaysPage() {
   const [maxBackDays, setMaxBackDays] = useState(1);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [resetConfirmText, setResetConfirmText] = useState("");
+  const [resetting, setResetting] = useState(false);
 
   useEffect(() => {
     fetch("/api/admin/campaign")
@@ -47,6 +50,15 @@ export default function DaysPage() {
     setSaving(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
+  };
+
+  const handleReset = async () => {
+    setResetting(true);
+    await fetch("/api/admin/reset-points", { method: "POST" });
+    setResetting(false);
+    setShowResetConfirm(false);
+    setResetConfirmText("");
+    alert("כל הנקודות אופסו בהצלחה");
   };
 
   return (
@@ -122,6 +134,64 @@ export default function DaysPage() {
           <Save size={18} />
           {saving ? "שומר..." : saved ? "נשמר!" : "שמירה"}
         </button>
+      </div>
+
+      <div className="card mt-8 border-2 border-red-200 bg-red-50/50">
+        <div className="flex items-start gap-3 mb-4">
+          <AlertTriangle size={24} className="text-red-500 flex-shrink-0 mt-0.5" />
+          <div>
+            <h2 className="text-lg font-bold text-red-700">איפוס נקודות</h2>
+            <p className="text-sm text-red-600 mt-1">
+              פעולה זו תמחק את כל השלמות המשימות ותשובות החידונים של כל התלמידים.
+              <strong> לא ניתן לבטל פעולה זו.</strong>
+            </p>
+            <p className="text-sm text-red-600 mt-1">
+              מומלץ לייצא את הנתונים לאקסל לפני האיפוס כגיבוי.
+            </p>
+          </div>
+        </div>
+
+        {!showResetConfirm ? (
+          <button
+            onClick={() => setShowResetConfirm(true)}
+            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+          >
+            <Trash2 size={18} />
+            איפוס כל הנקודות
+          </button>
+        ) : (
+          <div className="space-y-3 p-4 bg-white rounded-lg border border-red-300">
+            <p className="text-sm font-medium text-gray-700">
+              הקלד &quot;אני מאשר&quot; כדי לאשר את האיפוס:
+            </p>
+            <input
+              type="text"
+              value={resetConfirmText}
+              onChange={(e) => setResetConfirmText(e.target.value)}
+              placeholder='הקלד "אני מאשר"'
+              className="input-field w-full sm:w-64"
+              dir="rtl"
+            />
+            <div className="flex gap-2">
+              <button
+                onClick={handleReset}
+                disabled={resetConfirmText !== "אני מאשר" || resetting}
+                className="bg-red-600 hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg transition-colors"
+              >
+                {resetting ? "מאפס..." : "אישור איפוס"}
+              </button>
+              <button
+                onClick={() => {
+                  setShowResetConfirm(false);
+                  setResetConfirmText("");
+                }}
+                className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg transition-colors"
+              >
+                ביטול
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
